@@ -9,7 +9,7 @@ d=[]
 #value in state 1
 val=[]
 state=0
-
+sec=0
 def findVariance(d):
     m1=0
     m2=0
@@ -61,11 +61,20 @@ def drawLine(img,state):
     elif(state==2):
 	cv2.rectangle(img,(500,320),(640,480),(0,255,0),3)
 	cv2.putText(img,'back',(550,400),font,1,(255,255,255),2,cv2.LINE_AA)
+	cv2.rectangle(img,(360,320),(500,480),(0,255,0),3)
+	cv2.putText(img,'edge',(380,400),font,1,(255,255,255),2,cv2.LINE_AA)
+	cv2.rectangle(img,(220,320),(360,480),(0,255,0),3)
+	cv2.putText(img,'blur',(230,400),font,1,(255,255,255),2,cv2.LINE_AA)
+	cv2.rectangle(img,(80,320),(220,480),(0,255,0),3)
+	cv2.putText(img,'gray',(90,400),font,1,(255,255,255),2,cv2.LINE_AA)
+
+
 
 cap=cv2.VideoCapture(0)
 
 while(cap.isOpened()):
     global state
+    global sec
 
     ret,img=cap.read()
     drawLine(img,state)    
@@ -81,7 +90,6 @@ while(cap.isOpened()):
  
     
     mx,my,var=findVariance(d)
-    
     if(var<1000 and len(d)==30):
 	if(state==0):
 	    if(my<320 and my >140):
@@ -100,6 +108,8 @@ while(cap.isOpened()):
 		row=1
 	    elif(my>280 and my<420):
 		row=2
+	    else:
+		row=-1
 
 
 	    if(mx>180 and mx<270):
@@ -110,6 +120,8 @@ while(cap.isOpened()):
 		col=2
 	    elif(mx>450 and mx<540):
 		col=3
+	    else:
+		col=-1
 	    
 	    if(col==3):
 		if(row==0):
@@ -122,15 +134,40 @@ while(cap.isOpened()):
 		    val.append('0')
 	    else:
 		num=row*3+col+1
-		val.append(`num`)
+		if(row*col>=0):
+		    val.append(`num`)
 	    s="".join(val) 
 
 	    for i in range(0,30):
 		    d.pop(0)
 	elif(state==2):
-	    if(mx<640 and mx>500 and my>320 and my<480):
-		state=0
-    print var
+	    if(my>320 and my<480):
+		if(mx<640 and mx>500):
+		    state=0
+		    sec=0
+		    for i in range(0,len(val)):
+			val.pop(i)
+		elif((mx<500 and mx>360)):
+		    sec=1
+		    for i in range(0,len(val)):
+			val.pop(i)
+		elif(mx<360 and mx>220):
+		    sec=3
+		    for i in range(0,len(val)):
+			val.pop(i)
+
+		elif((mx<220 and mx>80)):
+		    sec=2
+		    for i in range(0,len(val)):
+			val.pop(i)
+		
+		if(sec==1):
+		    img=cv2.Canny(img,100,200)
+		elif(sec==2):
+		    img=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+		elif(sec==3):
+		    img=cv2.GaussianBlur(img,(9,9),0)
+	    print state,sec,mx,my
 
     cv2.imshow("img",img)
     k=cv2.waitKey(20) & 0xFF
