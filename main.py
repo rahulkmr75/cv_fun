@@ -6,6 +6,9 @@ s=""
 #to store the list of moments
 d=[]
 
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+out=cv2.VideoWriter('output.avi',fourcc,25.0,(640,480))
+
 #value in state 1
 val=[]
 state=0
@@ -170,6 +173,7 @@ while(cap.isOpened()):
 	    print state,sec,mx,my
 
     cv2.imshow("img",img)
+    out.write(img)
     k=cv2.waitKey(20) & 0xFF
     if k==27:
         break
